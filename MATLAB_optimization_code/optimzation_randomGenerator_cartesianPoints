@@ -1,0 +1,137 @@
+clear
+clc
+ 
+%% Variables
+i = 1;               %iteration counter
+j = 1;               %iteration counter
+n = 10;              %# of plants 
+m = 20;              %# of DCs
+p = 150;             %# of customers
+c = 2;               %# of columns
+ 
+%% Generating Plant Coordinates
+%Coordinates for each plant are generated uniformly on U[10,200]
+while i <= n 
+   
+    while j <= c
+    
+    x = randi([10,200]);
+    plants(i,j) = x; 
+    
+    j = j+1; 
+    
+    end 
+    j=1;
+    i=i+1;
+end
+ 
+%% Generating DC Coordinates
+%Coordinates for each DC are generated uniformly on U[10,200]
+i=1; 
+j=1;
+ 
+while i <= m 
+    
+    while j <= c
+ 
+    x = randi([10,200]);
+    
+    DCs(i,j) = x; 
+    
+    j = j+1; 
+    
+    end 
+    
+    j=1 ; 
+    i=i+1;
+end
+ 
+%% Generating Customer Coordinates
+%Coordinates for each customer are generated uniformly on U[10,200]
+i=1; 
+j=1;
+ 
+while i <= p 
+ 
+    while j <= c
+     
+    x = randi([10,200]); 
+    
+    customers(i,j) = x; 
+    
+    j = j+1; 
+    
+    end 
+    j=1;
+    i=i+1;
+end
+ 
+%% Generating Customer Demand Vector
+%demand is generated uniformly on U[10,50]
+%generate a vector, d_k, consisting of demand for each customer   
+ 
+j=1;
+i=1;
+ 
+while i <= p 
+      
+    x = randi([10,50]); 
+ 
+    d_k(i) = x; 
+ 
+    i = i+1; 
+    
+end 
+ 
+%% Generating DC Capacity Vector
+ %capacity is generated uniformly on U[10,160]
+ %generate a vector, V, consisting of capacities of the distribution
+ %centres 
+ i=1;
+ 
+ while i <= m 
+ 
+    x = randi([10,160]); 
+ 
+    V(i) = x; 
+ 
+    i = i+1; 
+    
+ end 
+ 
+ i=1; 
+ 
+ %% Generating Random Numbers for Fixed Cost of Opening a DC Vector
+%generate 40 random numbers to be used to determine fixed cost of opening a
+%specific DC  
+ 
+%the first 20 random numbers will be generated uniformly on U[0,90], and
+%will be put in a vector
+%the rest of the random numbers will be generated uniformly on U[100,110],
+%and will be put in another vector 
+%the intervals chosen were designed to reflect economies of scale
+ 
+ while i <= m 
+  
+    x = randi([0,90]); 
+ 
+    Random1(i) = x; 
+ 
+    i = i+1; 
+    
+ end 
+ 
+ i=1; 
+ 
+ while i <= m 
+  
+    x = randi([100,110]); 
+ 
+    Random2(i) = x; 
+ 
+    i = i+1; 
+    
+ end  
+ 
+ %% Define the Variable that will stop randomNumberGenerator from running more than once in the Master_Script
+turnoffrandomnumber = 1; 
