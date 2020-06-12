@@ -1,0 +1,36 @@
+%% Variables
+j = 1;
+ 
+%% Blanks Generators
+ 
+Iy_m = zeros(m1*n1,m1+1);   %m1+1 extreme points of size m1 in each of the n1 sets
+Id_1 = eye(m1);             %m1 by m1 identity matrix
+ 
+%% Iy_m Generator
+ 
+while j <= n1                                       %number of sets
+   
+    Iy_m(1+m1*(j-1):j*m1,1:m1) = Id_1*V_j(1,j);     %each extreme point has at most one of its values V_j, the rest zero 
+                                                    %the (m1+1)th extreme
+                                                    %point is the zero
+                                                    %extreme point
+    j = j+1; 
+end
+ 
+Iy_m;      %A matrix including n1 sets of extreme points
+ 
+%% I_yj - same information as Iy_m, but written in a different way
+%this matrix contains all extreme points of all n1 subproblems, SP2j
+i = 1; 
+ 
+while i <= n1
+    
+part = Iy_m((i-1)*m1+1:i*m1, :);
+ 
+I_yj(:,(i-1)*m1+i:i*(m1+1)) = part;
+ 
+i = i+1;
+ 
+end 
+ 
+I_yj;
