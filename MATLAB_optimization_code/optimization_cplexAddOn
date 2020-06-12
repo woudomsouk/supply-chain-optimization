@@ -1,0 +1,13 @@
+%% Call on cplex
+ 
+for i = 1 : 2*n1+1      %each variable will be of the continuous type
+  ctype(i) = 'C';
+end
+ 
+%below, we are maximizing (minimizing a negative objective function) over
+%theta_mu
+%the resulting vector of variables will have 2*n1+1 entries
+%The first n1+1 will correspond to theta_0,...,theta_n1
+%The other n1 entries correspond to the Lagrangian multipliers
+ 
+[theta_mu, fval_LMP, exitflag_LMP, output_LMP] = cplexmilp(ObjectiveFunctionLMP, A_lmp, b_LMP, A_LMP_equality, b_LMP_equality, sos1, sos2, sos3, LB_LMP, UB_LMP, ctype);
