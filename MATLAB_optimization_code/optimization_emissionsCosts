@@ -1,0 +1,37 @@
+%% Variables
+ 
+m1 = 3;                 %number of plants 
+n1 = 7;                %number of DCs 
+p1 = 15;                %number of customers
+ 
+i = 1;                  %iteration counter
+j = 1;                  %iteration counter
+k = 1;                  %iteration counter
+ 
+mu = 500*ones(n1,1);    %Multiplier initialization
+beta_1 = 1;             %a parameter associated with transportation cost of plant to DC
+beta_2 = 1;             %a parameter associated with transportation cost of DC to customer
+alpha = 100;            %parameter associated with fixed cost of opening a DC
+kappa = 3;              %rigidity of the problem (can be 3, 5 or 10) 
+omega = 0;              %parameter associated with the emissions cost
+
+ %% Defining the f(d) matrix
+ %This matrix consists of emissions costs from DC j to customer k
+ j = 1;
+ k = 1; 
+ 
+while k <= p1 
+    
+    while j <= n1
+    
+    emissions_d = omega*0.2*d_jk(j,k)*(228.52*log(15000 + 75*d(k,1)) - 1732);   %Emissions cost function, distance going from DC j to customer k, units being shipped is d_k
+    
+    fd(j,k) = emissions_d;
+    
+    j = j+1;
+    end 
+    
+    j = 1;
+    k = k+1;
+    
+end 
