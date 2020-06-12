@@ -1,0 +1,145 @@
+format long g
+ 
+%% Introductory Variables
+ 
+i = 1;                              %iteration counter
+j = 1;                              %iteration counter
+k = 1;                              %iteration counter 
+mu = theta_mu(n1+2:2*n1+1, 1)       %define Lagrangian Multipliers
+ 
+%We first solve SP1 using cplex 
+ 
+%We need to define some matrices/vectors before we use cplex 
+ 
+%% Defining Vectors for SP1
+e_n = ones(n1,1);
+e_p = ones(p1,1);
+b_SP1_1 = zeros(n1,1);
+ 
+%% Generating the matrix for constraint 1
+j = 1;
+I = eye(n1,n1);
+ 
+while  j <= n1*p1
+    
+    A1(:, j:j+(n1-1)) = I*d(i,1);
+    
+    i = i+1; 
+    j = j+n1;
+    
+end 
+ 
+A1(:, n1*p1+1:n1*p1+n1) = I.*(-V_j(1, 1:n1)); 
+ 
+A1
+ 
+ 
+%% Generating matrix for constraint 2
+j = 1; 
+i = 1;
+ 
+A2 = zeros(p1,n1*(p1+1));
+A2(1,:) = [ones(1,n1) zeros(1,n1*p1)];
+ 
+while j <= p1-1
+   
+    A2(j+1,:) = [zeros(1,j*n1) ones(1,n1) zeros(1,n1*(p1-j))];
+    
+    j = j+1;
+end
+ 
+ 
+A2
+ 
+%% Generating the Objective Function of SP1 
+ 
+j = 1; 
+i = 1; 
+k = 1;
+ObjectiveFunctionSP1 = zeros(1, n1*p1+n1);
+ 
+while k <= p1
+    
+    object = (fd(:,k) + d(k,1)*(H(:,k) + mu))';
+    
+    ObjectiveFunctionSP1(1,1+n1*(k-1):k*n1) = object;
+    k = k+1;
+end 
+ 
+ObjectiveFunctionSP1(1, n1*p1+1:n1*p1+n1) = g; 
+ 
+%% Using CPLEX to solve SP1
+ 
+ [x,fval_SP1,exitflag,output] = cplexbilp(ObjectiveFunctionSP1, A1, b_SP1_1, A2, e_p);
+ 
+ 
+%% Putting solution for Y into a matrix and solution for z into a vector
+i = 1; 
+j = 1; 
+k = 1;
+ 
+while k <= p1 
+        
+        column_y = x((k-1)*n1+1:k*n1);
+        
+        SP1_Solution_Y(:,k) = column_y;
+        
+        k = k+1;
+        
+    end
+ 
+SP1_Solution_Y;
+ 
+SP1_Solution_z = x(n1*p1+1:n1*p1+n1); 
+SP1_Solution_z;
+%% Creating Cmu matrix to solve SP2j
+j = 1; 
+i = 1; 
+k = 1; 
+ 
+%matrix Cmu is the cost matrix with a
+%Lagrange multiplier subtracted from each column
+while i <= n1 
+    
+    col = C(:,i) - mu(i,1);
+    
+    Cmu(:,i) = col;
+    
+    i = i+1;
+end 
+ 
+%% Solving SP2j 
+%we solve SP2j and put the results in a matrix, X
+ 
+e_m = ones(1,m1);
+Aeq = [];
+beq = [];
+lb_SP2j = zeros(m1,1);
+ub_SP2j = [];
+ 
+while j <= n1
+  
+    [x_j, fval_j, exitflag, output] = cplexlp(Cmu(:,j)', e_m, V_j(j), Aeq, beq, lb_SP2j, ub_SP2j);
+    
+    X(:,j) = x_j;
+    
+    [r c] =find(X(:,j)==max(X(:,j)));
+    
+    if length(r) > 1 
+    
+        ob_function_value_SP2j(j,1) = 0;
+    else
+    
+    Emissions_SP2_j = omega*0.2*d_ij(r,j)*(228.52*log(15000 + 75*V_j(j)) - 1732);
+    
+    ob_function_value_SP2j(j,1) = Emissions_SP2_j + fval_j;
+    
+    end 
+    
+    j = j+1;
+end
+ 
+X 
+ob_function_value_SP2j;
+ 
+Best_Lower_Bound = fval_SP1 + sum(ob_function_value_SP2j);
