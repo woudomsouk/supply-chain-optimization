@@ -1,0 +1,42 @@
+%% Define Ix_bar and Iyj_bar 
+ 
+Creating_Ix(); 
+Creating_Iyj(); 
+ 
+%% The Algorithm 
+ 
+Master_Count = 1;
+ 
+while 1
+    %% Solve the Master Problem 
+ 
+    Solving_The_Master_Problem(); 
+    Cplex_Master_Problem(); 
+ 
+    %% Solve the Subproblems Using the New Multipliers, Obtain a Lower Bound
+ 
+    Solving_The_Subproblems();
+ 
+    %% Activate Heuristic to get Feasible Solution for x_ij 
+ 
+    Activating_The_Heuristic(); 
+ 
+    %% Compare Bounds 
+ 
+    Comparison = abs((abs(fval_LMP) - Best_Lower_Bound))/Best_Lower_Bound
+    
+    if Comparison < 0.05 
+        break 
+    else 
+        testing_YZcut();
+        Generating_Yz_cut();
+        Master_Count = Master_Count + 1
+    end
+    
+    masterCount_range(1,Master_Count) = Master_Count;
+    fval_range(1,Master_Count) = abs(fval_LMP);
+    BLB_range(1,Master_Count) = Best_Lower_Bound;
+    comparison_range(1,Master_Count) = Comparison;
+end
+ 
+plot(masterCount_range, fval_range,'-', masterCount_range, BLB_range,'--')
