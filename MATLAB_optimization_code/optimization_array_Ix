@@ -1,0 +1,58 @@
+%% Variables
+ 
+yj = n1;            %rows in each feasible matrix, Y
+yk = p1;            %columns in each feasible matrix, Y  
+h1 = n1*(p1+1)+1;   %number of feasible matrices we are creating, initially, to ensure enough contraints in LMP
+ 
+%% Yx Generator
+ 
+% Initialize values
+Ix_bar = zeros(yj*h1,yk);
+cnt = 0;
+ 
+while cnt < h1
+    
+    % Yx_h Generator
+    for i = 1:yk 
+ 
+        % Generate random number column
+        Ix(:,i) = randperm(yj,yj)';
+        Imin = min(Ix(:,i));
+ 
+        for j = 1:yj
+ 
+            % Convert random numbers to binary
+            if Ix(j,i) == Imin
+                Ix(j,i) = 1;
+            else    
+                Ix(j,i) = 0;
+            end    
+        end
+    end
+ 
+    %% Compare Yx_h's to ensure no repeats in the set
+    mtrx_row_i = 1+yj*cnt;
+    mtrx_row_o = mtrx_row_i+(yj-1);
+ 
+    % Repeat, add to main matrix   
+    if isequal(Ix,Ix_bar(mtrx_row_i:mtrx_row_o,:))
+    
+    % No repeats, add to main matrix    
+    else
+        Ix_bar(mtrx_row_i:mtrx_row_o,:) = Ix;
+    end
+    cnt = cnt + 1;
+end
+ 
+%% Zx Generator 
+%the values of z are dependent on what we choose Y to be
+ 
+for i = 1:size(Ix_bar,1)
+    
+    if sum(Ix_bar(i,:))==0
+        Ix_bar(i,yk+1) = 0;
+    else
+        Ix_bar(i,yk+1) = 1;
+    end
+    
+end
