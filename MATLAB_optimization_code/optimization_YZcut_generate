@@ -1,0 +1,17 @@
+%% Ix_bar Addition
+ 
+i = 1;
+ 
+while i < 2
+    if dot_lhs_constraint1_theta_mu <= b_LMP_h1_cut
+        testing_YZcut();
+        i = 1; 
+ 
+    else
+        dot_lhs_constraint1_theta_mu;
+        b_LMP_h1_cut;
+        Ix_bar(size(Ix_bar,1)+1:size(Ix_bar,1)+n1,:) = Ix_cut;
+        h1 = h1+1;
+        i = i+1;
+    end
+end
