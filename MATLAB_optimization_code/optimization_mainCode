@@ -1,0 +1,163 @@
+%% Variables
+i = 1;                  %iteration counter
+j = 1;                  %iteration counter
+k = 1;                  %iteration counter 
+ 
+%% Creating the Objective Function 
+%we maximize the objective function, which is the sum of the first n1+1
+%variables we are minimizing over
+%the other n1 variables we are maximizing over are the Lagrangian
+%multipliers
+ 
+one = ones(1, n1+1);
+zero = zeros(1, n1);
+ObjectiveFunctionLMP = -[one zero];     %negative because Cplex automatically minimizes the problem
+ 
+%% Creating the Equality Constraint Matrix A_LMP
+i = 1;
+j = 1;
+k = 1;
+ 
+%% Matrix Part 1 
+%This are the LHS coefficients of the constraints related to the index set,
+%Ix_bar
+ 
+A_lmp_1 = zeros(h1,2*n1+1);
+A_lmp_1(:,1) = ones(h1,1);
+ 
+while i <= h1 
+    while j <= n1
+        A_lmp_1(i,j+n1+1) = -dot(Ix_bar(k,1:p1),d);
+        j = j+1;
+        k = k+1;
+    end
+    i = i+1;
+    j = 1;
+end
+ 
+%% Matrix Part 2
+%This are the LHS coefficients of the constraints related to the index set,
+%I_yj
+ 
+i = 1; 
+j = 1;
+k = 1; 
+ 
+A_lmp_2 = zeros(n1*(m1+1),2*n1+1);
+A_lmp_2(1:m1+1,1+1) = ones(m1+1,1);
+ 
+while i <= n1
+    while j <= m1+1
+        A_lmp_2(k,1+i) = 1;
+        A_lmp_2(k,1+n1+i) = sum(I_yj(:,k));
+        j = j+1;
+        k = k+1;
+    end
+    i = i+1;
+    j = 1;
+end
+%% Matrix Combine Part 1 and 2
+ 
+A_lmp = [A_lmp_1;
+            A_lmp_2];  
+ 
+%% Generate b_LMP_1
+%These RHS values correspond to A_lmp_1
+%ie. they correspond to the index set, Ix
+ 
+i = 1;
+j = 1;
+k = 1;
+ 
+while i <= h1                           
+    
+    y = Ix_bar(1+n1*(i-1):i*n1,1:p1);   %Take the feasible point from matrix Ix_bar
+ 
+    % Part 1
+    fdy = fd.*y;
+    sum_fdy(i,1) = sum(sum(fdy));       %The sum of all carbon emissions from DC j to customer k
+    
+    % Part 2
+    Hy = H.*y;
+    
+    while j <= p1
+        sum_Hy(j,1) = sum(Hy(:,j));     %The sum of all unit transportation/handling costs from DC j to customer k
+        j = j+1;   
+    end
+ 
+    dotPro_d_sumHy(i,1) = dot(d',sum_Hy);   %unit transportation/handling costs multiplied by the number of units being shipped
+    
+    % Part 3
+    z = Ix_bar(1+n1*(i-1):i*n1,p1+1);       %Extract the corresponding z vector from Ix
+    dotPro_g_z(i,1) = dot(g',z);            %calculate the fixed costs of opening the DCs
+ 
+    i = i+1;
+    j = 1;
+end
+ 
+sum_b_LMP_h1 = [sum_fdy dotPro_d_sumHy dotPro_g_z];     %Put parts 1, 2, and 3 from above into a matrix
+ 
+while k <= h1
+ 
+   b_LMP_h1(k,1) = sum(sum_b_LMP_h1(k,:));              %sum up each row of the matrix to get the overall RHS of vector b_1
+   k = k+1;
+end
+ 
+%% Generating b_LMP_2
+ 
+%Creating f_xj + cxj
+h_comp = zeros(n1*(m1+1),1);
+i = 1;
+j = 1;
+k = 1;
+o = 1;
+ 
+while i <= n1*(m1+1)
+    
+    % Part 1
+    while j <= m1
+        if I_yj(j,i) ==0
+            fxj(j,1) = 0;  %If the entry is 0, its emissions cost function value is 0
+        else
+            fxj(j,1) = omega*0.2*d_ij(j,k)*(228.52*log(15000+75*I_yj(j,i))-1732);   %emissions cost function
+        
+        end
+        j = j+1;
+    end
+    
+    sum_fxj(i,1) = sum(fxj);    %add up all of the emissions cost function values for each i
+    
+    % Part 2
+    cxj(i,1) = dot(C(:,k),I_yj(:,i));   %unit cost of transportation/shipping from plant to DC multiplied by units being shipped
+    
+    i = i+1;
+    j = 1;    
+    h_comp(k,1) = h_comp(k,1)+1;
+    
+    if h_comp(k,1) == m1+1
+        k = k+1;
+    end
+end
+ 
+sum_b_LMP_h2 = [sum_fxj cxj];    %put both vectors from part 1, part 2 into a matrix
+ 
+while o <= n1*(m1+1)
+    b_LMP_h2(o,1) = sum(sum_b_LMP_h2(o,:));     %sum up over each row to get overall values of b_2
+    o = o+1;
+end
+ 
+b_LMP_h2
+%% The final b_LMP vector
+b_LMP = [b_LMP_h1; b_LMP_h2];
+ 
+%% Defining the empty paramaters for cplex 
+ 
+A_LMP_equality = []; 
+b_LMP_equality = []; 
+ 
+sos1 = []; 
+sos2 = []; 
+sos3 = [];
+ 
+LB_LMP = []; 
+UB_LMP = [];
