@@ -1,0 +1,28 @@
+%We will find the lowest cost in each column of the C matrix 
+%the location of the lowest cost in each column will correspond to the
+%location of the 1 in the W matrix 
+%in other words, the lowest cost in each column of the C matrix determines
+%the assignment of DCs to plants 
+ 
+j = 1;
+ 
+while j <= n1 
+    
+    [r c] = find(C(:,j)==min(C(:,j))); %finding location of min value in each column
+    
+    if length(r) > 1
+       r = r(1);
+    end
+    
+    wj = zeros(m1, 1);
+    
+    wj(r,1) = 1; % assigning the number 1 to the row where the min value was found in matrix C
+    
+    W(:,j) = wj
+    
+    %the iteration counter is updated
+    j = j+1; 
+    
+end  
+ 
+W;
