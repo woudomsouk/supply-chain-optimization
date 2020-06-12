@@ -1,0 +1,88 @@
+%% Yz_cut Generator
+ 
+% Initialize values
+k = 1;
+ 
+while k < 2 %Placeholder
+    
+    % Yx_h Generator
+    for i = 1:p1 
+ 
+        % Generate random number column
+        Ix_cut(:,i) = randperm(n1,n1)';
+        Imin = min(Ix_cut(:,i));
+ 
+        for j = 1:n1
+ 
+            % Convert random numbers to binary
+            if Ix_cut(j,i) == Imin
+                Ix_cut(j,i) = 1;
+            else    
+                Ix_cut(j,i) = 0;
+            end    
+        end
+    end
+    
+    % Compare to other matrixes in Ix_bar
+    i = 0;
+    
+    while i < h1
+        mtrx_row_i = 1+n1*i;
+        mtrx_row_o = mtrx_row_i+(n1-1);
+        
+        if isequal(Ix_cut,Ix_bar(mtrx_row_i:mtrx_row_o,1:p1))
+        else
+            k = k+1;
+        end
+        i = i+1;
+    end
+end
+ 
+%% Z Generator
+ 
+for i = 1:size(Ix_cut,1)
+    if sum(Ix_cut(i,:))==0
+        Ix_cut(i,p1+1) = 0;
+    else
+        Ix_cut(i,p1+1) = 1;
+    end
+end
+ 
+%% LHS-RHS Comparison
+ 
+% Create new A_lmp_1
+lhs_constraint1 = zeros(1,2*n1+1);
+lhs_constraint1(1,1) = 1;
+ 
+i = 1;
+j = 1;
+while i <= n1
+    lhs_constraint1(1,i+n1+1) = -dot(Ix_cut(j,1:p1),d);
+    i = i+1;
+    j = j+1;
+end
+ 
+% LHS dot product
+dot_lhs_constraint1_theta_mu = dot(lhs_constraint1',theta_mu);
+ 
+% Create new B_lmp_1
+ 
+% Part 1
+fdy_cut = fd.*Ix_cut(:,1:p1);
+sum_fdy_cut = sum(sum(fdy_cut));
+ 
+% Part 2
+Hy_cut = H.*Ix_cut(:,1:p1);
+ 
+while j <= p1
+    sum_Hy_cut(j,1) = sum(Hy_cut(:,j));
+    j = j+1;   
+end
+ 
+dotPro_d_sumHy_cut = dot(d',sum_Hy_cut);
+ 
+% Part 3
+z = Ix_cut(1:n1,p1+1);
+dotPro_g_z_cut = dot(g',z);
+ 
+b_LMP_h1_cut = sum([sum_fdy_cut dotPro_d_sumHy_cut dotPro_g_z_cut]);
